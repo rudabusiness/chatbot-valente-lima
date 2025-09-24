@@ -1,0 +1,47 @@
+[
+  {
+    "timestamp": "2025-09-22T16:59:08.271633",
+    "phone_number": "+351912345678",
+    "message_id": "test_1758560347",
+    "incoming_message": "Olá, este é um teste do sistema",
+    "detected_language": "pt",
+    "ai_response": "Olá! Bem-vindo(a) à Valente & Lima Advogados. Sou o assistente virtual e estou aqui para ajudar. Como posso ser útil hoje?",
+    "sent_successfully": false
+  },
+  {
+    "timestamp": "2025-09-22T16:59:54.318996",
+    "phone_number": "+351912345678",
+    "message_id": "test_001",
+    "incoming_message": "Olá, bom dia!",
+    "detected_language": "pt",
+    "ai_response": "Olá! Bem-vindo(a) à Valente & Lima Advogados. Sou o assistente virtual e estou aqui para ajudar. Como posso ser útil hoje?",
+    "sent_successfully": false
+  },
+  {
+    "timestamp": "2025-09-22T16:59:54.628393",
+    "phone_number": "+351912345678",
+    "message_id": "test_002",
+    "incoming_message": "Gostaria de agendar uma consulta",
+    "detected_language": "pt",
+    "ai_response": "Para agendar uma consulta com os nossos advogados, pode usar o nosso sistema online: https://calendly.com/geral-valentelima\n\nHorários de atendimento:\n• Segunda a Sexta: 9:00-18:00\n• Sábado: 9:00-13:00\n• Fuso horário: Europa/Lisboa",
+    "sent_successfully": false
+  },
+  {
+    "timestamp": "2025-09-22T16:59:54.778469",
+    "phone_number": "+351987654321",
+    "message_id": "test_003",
+    "incoming_message": "Hello, I need legal advice",
+    "detected_language": "en",
+    "ai_response": "Hello! Welcome to Valente & Lima Advogados. I'm the virtual assistant and I'm here to help. How can I assist you today?",
+    "sent_successfully": false
+  },
+  {
+    "timestamp": "2025-09-22T16:59:54.922247",
+    "phone_number": "+351912345678",
+    "message_id": "test_004",
+    "incoming_message": "Preciso de falar com um advogado urgente!",
+    "detected_language": "pt",
+    "ai_response": "Compreendo que precisa de falar com um dos nossos advogados. Vou transferir a sua conversa para um membro da nossa equipa. Por favor, aguarde um momento.",
+    "sent_successfully": false
+  }
+]

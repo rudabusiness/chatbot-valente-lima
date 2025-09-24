@@ -1,0 +1,70 @@
+{
+  "company": {
+    "name": "Valente & Lima Advogados",
+    "locations": "Braga e Lisboa",
+    "phone": "+351936647900",
+    "calendly_link": "https://calendly.com/geral-valentelima",
+    "business_hours": {
+      "weekdays": "Segunda a Sexta: 9:00-18:00",
+      "saturday": "Sábado: 9:00-13:00",
+      "timezone": "Europa/Lisboa"
+    }
+  },
+  "ai_settings": {
+    "max_response_length": 200,
+    "supported_languages": ["pt", "en"],
+    "default_language": "pt",
+    "escalation_cooldown_minutes": 10
+  },
+  "webhook_settings": {
+    "port": 5000,
+    "host": "0.0.0.0",
+    "endpoint": "/webhook/whatsapp",
+    "secret": "valente_lima_webhook_2024"
+  },
+  "logging": {
+    "level": "INFO",
+    "interaction_logs_path": "/home/ubuntu/whatsapp_interactions_",
+    "server_logs_path": "/home/ubuntu/webhook_server.log",
+    "workflow_logs_path": "/home/ubuntu/whatsapp_logs.log"
+  },
+  "escalation_triggers": {
+    "pt": [
+      "falar com advogado",
+      "advogado humano", 
+      "pessoa real",
+      "urgente",
+      "emergência",
+      "insatisfeito",
+      "reclamação",
+      "problema grave"
+    ],
+    "en": [
+      "speak to lawyer",
+      "human lawyer",
+      "real person", 
+      "urgent",
+      "emergency",
+      "unsatisfied",
+      "complaint",
+      "serious problem"
+    ]
+  },
+  "appointment_keywords": {
+    "pt": [
+      "agendar",
+      "marcar",
+      "consulta",
+      "reunião",
+      "encontro",
+      "appointment"
+    ],
+    "en": [
+      "schedule",
+      "book", 
+      "appointment",
+      "meeting",
+      "consultation"
+    ]
+  }
+}
