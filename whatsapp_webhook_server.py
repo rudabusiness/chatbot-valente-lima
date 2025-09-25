@@ -12,12 +12,16 @@ import os
 import sys
 
 # ✅ Logging compatível com Railway (stream para stdout)
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s] %(message)s',
-    handlers=[logging.StreamHandler()]
-)
+import logging
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s'))
+
+logger.handlers.clear()
+logger.addHandler(console_handler)
 
 # Adicionar o diretório atual ao path para importar o workflow
 sys.path.append('/home/ubuntu')
