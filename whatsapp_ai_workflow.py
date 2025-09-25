@@ -25,7 +25,6 @@ logger.addHandler(console_handler)
 
 # ✅ CORRIGIDO: Usar diretório /app em vez de /home/ubuntu
 sys.path.append('/app')
-from whatsapp_ai_workflow import handle_webhook
 
 # Criar aplicação Flask
 app = Flask(__name__)
