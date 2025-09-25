@@ -11,17 +11,16 @@ from datetime import datetime
 import os
 import sys
 
-# Adicionar o diretório atual ao path para importar o workflow
-sys.path.append('/home/ubuntu')
+# ✅ CORRIGIDO: Usar diretório /app em vez de /home/ubuntu
+sys.path.append('/app')
 from whatsapp_ai_workflow import handle_webhook
 
-# Configuração de logging
+# ✅ CORRIGIDO: Configuração de logging sem arquivo (só console)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/home/ubuntu/webhook_server.log'),
-        logging.StreamHandler()
+        logging.StreamHandler()  # Apenas console, sem arquivo
     ]
 )
 logger = logging.getLogger(__name__)
@@ -101,9 +100,9 @@ def whatsapp_webhook_verify():
 def admin_stats():
     """Endpoint administrativo para estatísticas básicas"""
     try:
-        # Contar arquivos de log do mês atual
+        # ✅ CORRIGIDO: Usar /app em vez de /home/ubuntu
         current_month = datetime.now().strftime('%Y%m')
-        log_file = f"/home/ubuntu/whatsapp_interactions_{current_month}.json"
+        log_file = f"/app/whatsapp_interactions_{current_month}.json"
         
         interaction_count = 0
         if os.path.exists(log_file):
