@@ -23,8 +23,8 @@ console_handler.setFormatter(logging.Formatter('[%(asctime)s] [%(levelname)s] %(
 logger.handlers.clear()
 logger.addHandler(console_handler)
 
-# Adicionar o diretório atual ao path para importar o workflow
-sys.path.append('/home/ubuntu')
+# ✅ CORRIGIDO: Usar diretório /app em vez de /home/ubuntu
+sys.path.append('/app')
 from whatsapp_ai_workflow import handle_webhook
 
 # Criar aplicação Flask
@@ -89,7 +89,8 @@ def whatsapp_webhook_verify():
 def admin_stats():
     try:
         current_month = datetime.now().strftime('%Y%m')
-        log_file = f"/home/ubuntu/whatsapp_interactions_{current_month}.json"
+        # ✅ CORRIGIDO: Usar diretório /app em vez de /home/ubuntu
+        log_file = f"/app/whatsapp_interactions_{current_month}.json"
         interaction_count = 0
 
         if os.path.exists(log_file):
