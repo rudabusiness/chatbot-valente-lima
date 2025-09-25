@@ -1,315 +1,195 @@
-[README_WhatsApp_AI_Workflow.md](https://github.com/user-attachments/files/22503816/README_WhatsApp_AI_Workflow.md)
-# WhatsApp AI Workflow - Valente & Lima Advogados
+Aqui está um README_DEPLOY.md 100% adaptado para o Railway, com instruções claras, passo a passo, prontas para incluir no seu repositório:
 
-## 📋 Visão Geral
+⸻
 
-Sistema de atendimento automatizado para WhatsApp que utiliza IA para responder mensagens de clientes 24/7, com suporte bilíngue (PT-PT/EN) e escalação inteligente para advogados humanos.
+📄 README_DEPLOY.md
 
-## 🎯 Objetivos
+# 🚀 Deploy do WhatsApp AI Workflow – Valente & Lima Advogados
 
-- ✅ Servir como primeiro ponto de contacto no WhatsApp
-- ✅ Automatizar respostas iniciais e triagem de clientes  
-- ✅ Oferecer suporte em tempo real 24/7
-- ✅ Reduzir tempo de resposta e aumentar eficiência
-- ✅ Detectar quando escalar para atendimento humano
-
-## 🏗️ Arquitetura do Sistema
-
-```
-WhatsApp → Wasender API → Webhook Server → AI Workflow → Resposta Automática
-                                ↓
-                        Logs & Monitoramento
-```
-
-## 📁 Estrutura de Arquivos
-
-```
-/home/ubuntu/
-├── whatsapp_ai_workflow.py      # Lógica principal do AI Workflow
-├── whatsapp_webhook_server.py   # Servidor Flask para webhooks
-├── whatsapp_config.json         # Configurações do sistema
-├── setup_whatsapp_workflow.sh   # Script de instalação
-├── test_whatsapp_workflow.py    # Script de testes
-├── monitor_whatsapp.sh          # Script de monitoramento
-├── backup_whatsapp_data.sh      # Script de backup
-├── logs/                        # Diretório de logs
-├── backups/                     # Diretório de backups
-└── .api_secret_infos/          # Credenciais da API (seguro)
-```
-
-## 🚀 Instalação e Configuração
-
-### 1. Executar Setup Automático
-
-```bash
-cd /home/ubuntu
-chmod +x setup_whatsapp_workflow.sh
-./setup_whatsapp_workflow.sh
-```
-
-### 2. Iniciar o Serviço
-
-```bash
-# Iniciar serviço
-sudo systemctl start whatsapp-webhook.service
-
-# Verificar status
-sudo systemctl status whatsapp-webhook.service
-
-# Ver logs em tempo real
-sudo journalctl -u whatsapp-webhook.service -f
-```
-
-### 3. Testar o Sistema
-
-```bash
-# Teste básico
-python3 test_whatsapp_workflow.py
-
-# Monitoramento completo
-./monitor_whatsapp.sh
-```
-
-## 🔧 Configuração da Wasender API
-
-### 1. Configurar Webhook na Wasender
-
-- **URL do Webhook**: `http://SEU_SERVIDOR:5000/webhook/whatsapp`
-- **Método**: POST
-- **Content-Type**: application/json
-- **Eventos**: Mensagens recebidas
-
-### 2. Formato do Payload Esperado
-
-```json
-{
-  "from": "+351936647900",
-  "text": "Mensagem do cliente",
-  "id": "message_id_unique",
-  "timestamp": "2024-01-01T10:00:00Z"
-}
-```
-
-## 🤖 Funcionalidades da IA
-
-### Detecção de Idioma
-- Automática baseada em palavras-chave
-- Suporte para PT-PT e EN
-- Resposta no mesmo idioma da mensagem
-
-### Intenções Reconhecidas
-
-#### Português (PT-PT)
-- **Saudações**: "olá", "bom dia", "boa tarde"
-- **Serviços**: "serviços", "áreas", "especialidades"  
-- **Agendamento**: "agendar", "marcar", "consulta"
-- **Horários**: "horário", "funcionamento"
-- **Localização**: "onde", "morada", "escritório"
-
-#### Inglês (EN)
-- **Greetings**: "hello", "good morning", "good afternoon"
-- **Services**: "services", "areas", "specialties"
-- **Appointment**: "schedule", "book", "appointment"
-- **Hours**: "hours", "schedule", "open"
-- **Location**: "where", "location", "address"
-
-### Escalação Automática
-
-O sistema escala para atendimento humano quando detecta:
-
-#### Português
-- "falar com advogado"
-- "pessoa real"
-- "urgente" / "emergência"
-- "insatisfeito" / "reclamação"
-
-#### Inglês  
-- "speak to lawyer"
-- "real person"
-- "urgent" / "emergency"
-- "unsatisfied" / "complaint"
-
-## 🔄 Fluxo de Atendimento
-
-### 1. Mensagem Recebida
-```
-Cliente → WhatsApp → Wasender → Webhook Server
-```
-
-### 2. Processamento
-```
-Webhook Server → AI Workflow → Detecção de Idioma → Geração de Resposta
-```
-
-### 3. Controle de Escalação
-```
-Verificar Intervenção Humana → Pausar Bot (se ativo) → Cooldown 10min
-```
-
-### 4. Resposta Automática
-```
-AI Workflow → Wasender API → WhatsApp → Cliente
-```
-
-## 📊 Monitoramento e Logs
-
-### Endpoints de Monitoramento
-
-- **Health Check**: `GET /health`
-- **Estatísticas**: `GET /admin/stats`  
-- **Teste Manual**: `POST /admin/test`
-
-### Arquivos de Log
-
-- **Servidor**: `/home/ubuntu/webhook_server.log`
-- **Workflow**: `/home/ubuntu/whatsapp_logs.log`
-- **Interações**: `/home/ubuntu/whatsapp_interactions_YYYYMM.json`
-
-### Script de Monitoramento
-
-```bash
-# Executar monitoramento completo
-./monitor_whatsapp.sh
-```
-
-## 💾 Backup e Recuperação
-
-### Backup Automático
-- Executa diariamente às 02:00
-- Mantém últimos 7 backups
-- Inclui logs, configurações e credenciais
-
-### Backup Manual
-```bash
-./backup_whatsapp_data.sh
-```
-
-### Restaurar Backup
-```bash
-cd /home/ubuntu/backups
-tar -xzf whatsapp_backup_YYYYMMDD_HHMMSS.tar.gz -C /
-```
-
-## 🔒 Segurança
-
-### Credenciais
-- API keys armazenadas em `/home/ubuntu/.api_secret_infos/`
-- Arquivo protegido com permissões 600
-- Nunca expostas em logs
-
-### Webhook Security
-- Token de verificação configurado
-- Validação de payload JSON
-- Rate limiting implícito via Flask
-
-### Firewall
-```bash
-# Permitir apenas porta necessária
-sudo ufw allow 5000/tcp
-```
-
-## 🛠️ Manutenção
-
-### Comandos Úteis
-
-```bash
-# Reiniciar serviço
-sudo systemctl restart whatsapp-webhook.service
-
-# Ver logs em tempo real
-tail -f /home/ubuntu/webhook_server.log
-
-# Verificar espaço em disco
-df -h /home/ubuntu
-
-# Limpar logs antigos (>30 dias)
-find /home/ubuntu -name "*.log" -mtime +30 -delete
-```
-
-### Atualizações
-
-1. Parar serviço: `sudo systemctl stop whatsapp-webhook.service`
-2. Fazer backup: `./backup_whatsapp_data.sh`
-3. Atualizar arquivos
-4. Reiniciar serviço: `sudo systemctl start whatsapp-webhook.service`
-5. Testar: `python3 test_whatsapp_workflow.py`
-
-## 📞 Informações de Contacto
-
-### Empresa
-- **Nome**: Valente & Lima Advogados
-- **Localizações**: Braga e Lisboa  
-- **WhatsApp**: +351936647900
-- **Agendamentos**: https://calendly.com/geral-valentelima
-
-### Horários de Atendimento
-- **Segunda a Sexta**: 9:00-18:00
-- **Sábado**: 9:00-13:00
-- **Fuso Horário**: Europa/Lisboa
-- **Bot**: 24/7 (triagem inicial)
-
-## 🐛 Resolução de Problemas
-
-### Serviço Não Inicia
-```bash
-# Verificar logs
-sudo journalctl -u whatsapp-webhook.service -n 50
-
-# Verificar dependências
-pip3 install flask requests python-dateutil
-
-# Verificar permissões
-chmod +x /home/ubuntu/whatsapp_webhook_server.py
-```
-
-### Webhook Não Recebe Mensagens
-```bash
-# Testar conectividade
-curl http://localhost:5000/health
-
-# Verificar firewall
-sudo ufw status
-
-# Testar webhook manualmente
-curl -X POST http://localhost:5000/admin/test
-```
-
-### Mensagens Não São Enviadas
-```bash
-# Verificar credenciais da API
-cat /home/ubuntu/.api_secret_infos/api_secrets.json
-
-# Testar API Wasender manualmente
-curl -X POST https://wasenderapi.com/api/send-message \
-  -H "Authorization: Bearer SUA_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"to":"+351936647900","text":"Teste"}'
-```
-
-## 📈 Métricas e KPIs
-
-### Métricas Disponíveis
-- Número de mensagens processadas
-- Taxa de escalação para humanos
-- Tempo de resposta médio
-- Distribuição por idioma
-- Horários de maior atividade
-
-### Relatórios Mensais
-Os logs de interação são salvos mensalmente em:
-`/home/ubuntu/whatsapp_interactions_YYYYMM.json`
-
-## 🔮 Próximas Funcionalidades
-
-- [ ] Integração com CRM
-- [ ] Análise de sentimento
-- [ ] Respostas personalizadas por cliente
-- [ ] Dashboard web de monitoramento
-- [ ] Integração com Google Calendar
-- [ ] Suporte a anexos (imagens, documentos)
-- [ ] Chatbot mais avançado com contexto de conversa
+Este repositório contém o sistema de atendimento automatizado via WhatsApp, com IA multilíngue (PT-PT/EN), escalonamento inteligente para humanos e integração com a API Wasender.
 
 ---
 
-**Desenvolvido para Valente & Lima Advogados**  
-*Sistema de atendimento automatizado WhatsApp com IA*
+## ✅ Visão Geral do Projeto
+
+- Recebe mensagens via WhatsApp usando a Wasender API
+- Processa mensagens com inteligência artificial (detecção de idioma e intenção)
+- Responde automaticamente ou escala para advogados humanos
+- Totalmente funcional com logs, backup e monitoramento
+- Deploy fácil e gratuito via Railway
+
+---
+
+## ⚙️ Tecnologias Usadas
+
+- Python 3.8+
+- Flask
+- Wasender API
+- Railway.app (deploy cloud)
+
+---
+
+## 🪜 Etapas para Deploy via Railway
+
+### 1. 🧬 Pré-requisitos
+
+- Conta no [https://railway.app](https://railway.app)
+- Conta no GitHub com este repositório clonado
+- Chave da API da Wasender
+
+---
+
+### 2. 📁 Estrutura Esperada no Repositório
+
+Certifique-se de que seu projeto contenha:
+
+```bash
+.
+├── whatsapp_webhook_server.py       # Servidor Flask principal
+├── whatsapp_ai_workflow.py          # Lógica do assistente
+├── whatsapp_config.json             # Configurações
+├── requirements.txt                 # Dependências Python
+├── Procfile                         # Comando para rodar no Railway
+
+
+⸻
+
+3. 🧪 Criar os Arquivos Necessários
+
+requirements.txt
+
+flask
+requests
+python-dateutil
+
+Procfile
+
+web: python3 whatsapp_webhook_server.py
+
+Adicione e suba os arquivos com:
+
+git add requirements.txt Procfile
+git commit -m "Add arquivos para deploy Railway"
+git push origin main
+
+
+⸻
+
+4. 🚀 Deploy no Railway
+	1.	Acesse https://railway.app
+	2.	Clique em “New Project” → “Deploy from GitHub”
+	3.	Escolha o repositório chatbot-valente-lima
+	4.	Railway detecta Python automaticamente e usa:
+	•	requirements.txt para dependências
+	•	Procfile para iniciar o app
+
+⸻
+
+5. 🌍 URL Pública
+
+Após o deploy, você receberá uma URL como:
+
+https://chatbot-valente-lima.up.railway.app
+
+Teste com:
+
+curl https://chatbot-valente-lima.up.railway.app/health
+
+Resposta esperada:
+
+{"status": "ok"}
+
+
+⸻
+
+6. 🔗 Configurar Wasender API
+
+Configure o webhook com a URL da Railway:
+
+curl -X POST https://wasenderapi.com/api/webhook/configure \
+  -H "Authorization: Bearer SUA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "webhook_url": "https://chatbot-valente-lima.up.railway.app/webhook/whatsapp",
+    "events": ["message.received"],
+    "method": "POST"
+  }'
+
+
+⸻
+
+7. 🧪 Teste o Bot
+
+Simule:
+
+curl -X POST https://chatbot-valente-lima.up.railway.app/webhook/whatsapp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from": "+351912345678",
+    "text": "Olá, preciso de ajuda jurídica",
+    "id": "teste001"
+  }'
+
+
+⸻
+
+✅ Endpoints Disponíveis
+
+Endpoint	Método	Descrição
+/health	GET	Verifica status do servidor
+/webhook/whatsapp	POST	Recebe mensagens do WhatsApp
+/admin/stats	GET	Estatísticas básicas
+/admin/test	POST	Teste manual de resposta
+
+
+⸻
+
+📊 Métricas Coletadas
+	•	Total de mensagens
+	•	Idioma detectado (PT/EN)
+	•	Interações por horário
+	•	Escalações para humanos
+
+⸻
+
+🔐 Segurança
+	•	API Key protegida em arquivo .api_secret_infos/
+	•	Webhook com payload validado
+	•	Limite de taxa via lógica Flask
+	•	Nenhum dado sensível exposto nos logs
+
+⸻
+
+🤝 Contato
+
+Valente & Lima Advogados
+📍 Escritórios em Braga e Lisboa
+📱 WhatsApp: +351 936 647 900
+📅 Agendamentos: https://calendly.com/geral-valentelima
+🌐 Website: https://valentelima.com
+
+⸻
+
+Desenvolvido com ❤️ para automatizar, servir e escalar!
+
+---
+
+### ✅ O que fazer agora
+
+1. Crie esse arquivo `README_DEPLOY.md` direto no GitHub:
+   - Clique em **“Add file” → “Create new file”**
+   - Nome: `README_DEPLOY.md`
+   - Cole o conteúdo acima
+   - Commit direto na branch `main`
+
+2. Pronto! Agora seu projeto está totalmente documentado para qualquer dev ou sócio da equipa poder implantar ou escalar 🚀
+
+---
+
+Se quiser, posso também gerar:
+
+- `Dockerfile` para futuro deploy em VPS
+- Um **Painel React** para ver as métricas em tempo real
+- Uma integração com Google Sheets, Google Calendar, ou Notion
+
+Só dizer!
