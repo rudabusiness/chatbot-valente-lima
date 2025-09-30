@@ -1,6 +1,6 @@
 import json
 
-# Workflow adaptado para Wasender API - COMPLETO
+# Workflow adaptado para Wasender API
 workflow = {
     "name": "Wasender API Workflow",
     "nodes": [
@@ -9,7 +9,7 @@ workflow = {
             "parameters": {
                 "httpMethod": "POST",
                 "path": "wasender-webhook",
-                "responseMode": "lastNode",
+                "responseMode": "responseNode",
                 "options": {}
             },
             "id": "wasender-webhook-trigger",
@@ -518,93 +518,6 @@ return requests;"""
             "type": "n8n-nodes-base.httpRequest",
             "position": [1824, 1840],
             "typeVersion": 4.2
-        },
-        
-        # ============ GOOGLE DOCS IMPORTER ============
-        {
-            "parameters": {
-                "operation": "get",
-                "documentURL": "https://docs.google.com/document/d/1gvgp71e9edob8WLqFIYCdzC7kUq3pLO37VKb-a-vVW4/edit?tab=t.0"
-            },
-            "id": "google-docs-importer",
-            "name": "Google Docs Importer",
-            "type": "n8n-nodes-base.googleDocs",
-            "position": [464, -112],
-            "typeVersion": 2
-        },
-        
-        # ============ MONGODB VECTOR STORE INSERTER ============
-        {
-            "parameters": {
-                "mode": "insert",
-                "mongoCollection": {
-                    "__rl": True,
-                    "mode": "list",
-                    "value": "n8n-template"
-                },
-                "vectorIndexName": "data_index",
-                "options": {}
-            },
-            "id": "mongodb-vector-store-inserter",
-            "name": "MongoDB Vector Store Inserter",
-            "type": "@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas",
-            "position": [688, -112],
-            "typeVersion": 1.1
-        },
-        
-        # ============ OPENAI EMBEDDINGS GENERATOR ============
-        {
-            "parameters": {"options": {}},
-            "id": "openai-embeddings-generator",
-            "name": "OpenAI Embeddings Generator",
-            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-            "position": [688, 64],
-            "typeVersion": 1.2
-        },
-        
-        # ============ DOCUMENT SECTION LOADER ============
-        {
-            "parameters": {
-                "jsonMode": "expressionData",
-                "jsonData": "={{ $json.content }}",
-                "options": {
-                    "metadata": {
-                        "metadataValues": [{
-                            "name": "doc_id",
-                            "value": "={{ $json.documentId }}"
-                        }]
-                    }
-                }
-            },
-            "id": "document-section-loader",
-            "name": "Document Section Loader",
-            "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
-            "position": [784, 64],
-            "typeVersion": 1
-        },
-        
-        # ============ DOCUMENT CHUNKER ============
-        {
-            "parameters": {
-                "chunkSize": 3000,
-                "chunkOverlap": 200,
-                "options": {"splitCode": "markdown"}
-            },
-            "id": "document-chunker",
-            "name": "Document Chunker",
-            "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
-            "position": [784, 192],
-            "typeVersion": 1
-        },
-        
-        # ============ MANUAL TRIGGER ============
-        {
-            "parameters": {},
-            "id": "manual-trigger",
-            "name": "When clicking Execute Workflow",
-            "type": "n8n-nodes-base.manualTrigger",
-            "position": [240, -112],
-            "typeVersion": 1
         }
     ],
     
@@ -691,40 +604,26 @@ return requests;"""
         },
         "Embeddings OpenAI": {
             "ai_embedding": [[{"node": "MongoDB Vector Search", "type": "ai_embedding", "index": 0}]]
-        },
-        "When clicking Execute Workflow": {
-            "main": [[{"node": "Google Docs Importer", "type": "main", "index": 0}]]
-        },
-        "Google Docs Importer": {
-            "main": [[{"node": "MongoDB Vector Store Inserter", "type": "main", "index": 0}]]
-        },
-        "OpenAI Embeddings Generator": {
-            "ai_embedding": [[{"node": "MongoDB Vector Store Inserter", "type": "ai_embedding", "index": 0}]]
-        },
-        "Document Section Loader": {
-            "ai_document": [[{"node": "MongoDB Vector Store Inserter", "type": "ai_document", "index": 0}]]
-        },
-        "Document Chunker": {
-            "ai_textSplitter": [[{"node": "Document Section Loader", "type": "ai_textSplitter", "index": 0}]]
         }
     },
     
     "active": False,
     "settings": {"executionOrder": "v1"},
-    "meta": {"instanceId": "wasender-api-workflow"},
-    "id": "WasenderAPIWorkflow",
-    "tags": []
+    "meta": {"instanceId": "wasender-api-workflow"}
 }
 
-# Save to file with proper path
-import os
-output_path = '/tmp/Wasender_API_Workflow.json'
-with open(output_path, 'w', encoding='utf-8') as f:
+# Save to file
+with open('/tmp/Wasender_API_Workflow.json', 'w', encoding='utf-8') as f:
     json.dump(workflow, f, indent=2, ensure_ascii=False)
 
-# Verify file was created
-file_size = os.path.getsize(output_path)
-print(f"✅ Arquivo criado com sucesso!")
-print(f"📁 Localização: {output_path}")
-print(f"📊 Tamanho: {file_size} bytes")
-print(f"\n🔽 O arquivo está pronto para download!")
+print("✅ Workflow adaptado para Wasender API criado com sucesso!")
+print("\n📋 PRINCIPAIS MUDANÇAS:")
+print("1. ✅ Webhook Trigger substituído por webhook HTTP genérico")
+print("2. ✅ Nós 'Gets WhatsApp [Media] Source URL' substituídos por 'Decrypt Media (Wasender)'")
+print("3. ✅ Download de mídia descriptografada usando publicUrl")
+print("4. ✅ Envio de mensagens usando endpoint /api/send-message da Wasender")
+print("5. ✅ Estrutura de dados adaptada para formato Wasender (data.message, data.key.remoteJid)")
+print("\n⚙️ CONFIGURAÇÕES NECESSÁRIAS:")
+print("- Configure credenciais HTTP Header Auth com: Authorization: Bearer YOUR_WASENDER_API_KEY")
+print("- Configure o webhook URL no painel da Wasender")
+print("- Selecione o evento 'messages.upsert' no webhook")
