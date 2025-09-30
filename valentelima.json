@@ -1,0 +1,730 @@
+import json
+
+# Workflow adaptado para Wasender API - COMPLETO
+workflow = {
+    "name": "Wasender API Workflow",
+    "nodes": [
+        # ============ WEBHOOK TRIGGER (Wasender) ============
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "wasender-webhook",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "id": "wasender-webhook-trigger",
+            "name": "Wasender Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [240, 864],
+            "webhookId": "wasender-webhook-id",
+            "typeVersion": 2
+        },
+        
+        # ============ ROUTE MESSAGE TYPES ============
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {"version": 2},
+                                "combinator": "and",
+                                "conditions": [{
+                                    "leftValue": "={{ $json.data.message.conversation }}",
+                                    "operator": {"type": "string", "operation": "exists"}
+                                }]
+                            },
+                            "renameOutput": True,
+                            "outputKey": "Text"
+                        },
+                        {
+                            "conditions": {
+                                "options": {"version": 2},
+                                "combinator": "and",
+                                "conditions": [{
+                                    "leftValue": "={{ $json.data.message.audioMessage }}",
+                                    "operator": {"type": "object", "operation": "exists"}
+                                }]
+                            },
+                            "renameOutput": True,
+                            "outputKey": "Audio"
+                        },
+                        {
+                            "conditions": {
+                                "options": {"version": 2},
+                                "combinator": "and",
+                                "conditions": [{
+                                    "leftValue": "={{ $json.data.message.imageMessage }}",
+                                    "operator": {"type": "object", "operation": "exists"}
+                                }]
+                            },
+                            "renameOutput": True,
+                            "outputKey": "Image"
+                        },
+                        {
+                            "conditions": {
+                                "options": {"version": 2},
+                                "combinator": "and",
+                                "conditions": [{
+                                    "leftValue": "={{ $json.data.message.documentMessage }}",
+                                    "operator": {"type": "object", "operation": "exists"}
+                                }]
+                            },
+                            "renameOutput": True,
+                            "outputKey": "Document"
+                        }
+                    ]
+                }
+            },
+            "id": "route-types-wasender",
+            "name": "Route Message Types",
+            "type": "n8n-nodes-base.switch",
+            "position": [464, 864],
+            "typeVersion": 3.2
+        },
+        
+        # ============ TEXT MESSAGE HANDLER ============
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [{
+                        "name": "text",
+                        "type": "string",
+                        "value": "={{ $json.data.message.conversation }}"
+                    }, {
+                        "name": "from",
+                        "type": "string",
+                        "value": "={{ $json.data.key.remoteJid }}"
+                    }]
+                }
+            },
+            "id": "map-text-wasender",
+            "name": "Map Text Message",
+            "type": "n8n-nodes-base.set",
+            "position": [880, 416],
+            "typeVersion": 3.4
+        },
+        
+        # ============ DECRYPT AUDIO MEDIA ============
+        {
+            "parameters": {
+                "url": "https://wasenderapi.com/api/decrypt-media",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": True,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({\n  \"mediaKey\": $json.data.message.audioMessage.mediaKey,\n  \"url\": $json.data.message.audioMessage.url\n}) }}",
+                "options": {}
+            },
+            "id": "decrypt-audio-wasender",
+            "name": "Decrypt Audio (Wasender)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [880, 624],
+            "typeVersion": 4.2
+        },
+        
+        # ============ DOWNLOAD DECRYPTED AUDIO ============
+        {
+            "parameters": {
+                "url": "={{ $json.publicUrl }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "id": "download-audio-wasender",
+            "name": "Download Audio",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [1104, 624],
+            "typeVersion": 4.2
+        },
+        
+        # ============ TRANSCRIBE AUDIO (OpenAI) ============
+        {
+            "parameters": {
+                "resource": "audio",
+                "operation": "translate",
+                "options": {}
+            },
+            "id": "transcribe-audio-openai",
+            "name": "Transcribe Audio",
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "position": [1328, 624],
+            "typeVersion": 1.8
+        },
+        
+        # ============ DECRYPT IMAGE MEDIA ============
+        {
+            "parameters": {
+                "url": "https://wasenderapi.com/api/decrypt-media",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": True,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({\n  \"mediaKey\": $json.data.message.imageMessage.mediaKey,\n  \"url\": $json.data.message.imageMessage.url\n}) }}",
+                "options": {}
+            },
+            "id": "decrypt-image-wasender",
+            "name": "Decrypt Image (Wasender)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [880, 864],
+            "typeVersion": 4.2
+        },
+        
+        # ============ DOWNLOAD DECRYPTED IMAGE ============
+        {
+            "parameters": {
+                "url": "={{ $json.publicUrl }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "id": "download-image-wasender",
+            "name": "Download Image",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [1104, 864],
+            "typeVersion": 4.2
+        },
+        
+        # ============ ANALYZE IMAGE (OpenAI Vision) ============
+        {
+            "parameters": {
+                "resource": "image",
+                "operation": "analyze",
+                "modelId": {
+                    "__rl": True,
+                    "mode": "list",
+                    "value": "gpt-4o-mini"
+                },
+                "inputType": "base64",
+                "options": {"detail": "auto"}
+            },
+            "id": "analyze-image-openai",
+            "name": "Analyze Image",
+            "type": "@n8n/n8n-nodes-langchain.openAi",
+            "position": [1328, 864],
+            "typeVersion": 1.8
+        },
+        
+        # ============ MAP IMAGE PROMPT ============
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [{
+                        "name": "text",
+                        "type": "string",
+                        "value": "=User image description: {{ $json.content }}\n\nUser image caption: {{ $('Route Message Types').item.json.data.message.imageMessage.caption }}"
+                    }, {
+                        "name": "from",
+                        "type": "string",
+                        "value": "={{ $('Wasender Webhook').item.json.data.key.remoteJid }}"
+                    }]
+                }
+            },
+            "id": "map-image-prompt",
+            "name": "Map Image Prompt",
+            "type": "n8n-nodes-base.set",
+            "position": [1536, 864],
+            "typeVersion": 3.4
+        },
+        
+        # ============ DECRYPT DOCUMENT MEDIA ============
+        {
+            "parameters": {
+                "url": "https://wasenderapi.com/api/decrypt-media",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": True,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({\n  \"mediaKey\": $json.data.message.documentMessage.mediaKey,\n  \"url\": $json.data.message.documentMessage.url\n}) }}",
+                "options": {}
+            },
+            "id": "decrypt-document-wasender",
+            "name": "Decrypt Document (Wasender)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [880, 1200],
+            "typeVersion": 4.2
+        },
+        
+        # ============ DOWNLOAD DECRYPTED DOCUMENT ============
+        {
+            "parameters": {
+                "url": "={{ $json.publicUrl }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "id": "download-document-wasender",
+            "name": "Download Document",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [1104, 1200],
+            "typeVersion": 4.2
+        },
+        
+        # ============ MAP FILE EXTENSIONS ============
+        {
+            "parameters": {
+                "jsCode": """let requests = $("Download Document").all()
+
+requests.forEach((request) => {
+  let mime_type = $('Wasender Webhook').item.json.data.message.documentMessage.mimetype
+
+  if (
+    mime_type === "text/calendar" || 
+    mime_type === "application/ics" || 
+    mime_type === "text/x-calendar"
+  ) {
+    request.json.mime_type = "mapped/calendar"
+  }
+
+  if (
+    mime_type === "application/xml" || 
+    mime_type === "text/xml") {
+    request.json.mime_type = "mapped/xml"
+  }
+
+  if (!mime_type) {
+    request.json.mime_type = mime_type
+  } else {
+    request.json.mime_type = mime_type
+  }
+})
+
+return requests;"""
+            },
+            "id": "map-file-extensions",
+            "name": "Map File Extensions",
+            "type": "n8n-nodes-base.code",
+            "position": [1280, 1200],
+            "typeVersion": 2
+        },
+        
+        # ============ ROUTE DOCUMENT TYPES ============
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {"conditions": {"combinator": "and", "conditions": [{"leftValue": "={{ $json.mime_type }}", "operator": {"type": "string", "operation": "equals"}, "rightValue": "application/pdf"}]}, "renameOutput": True, "outputKey": "PDF"},
+                        {"conditions": {"combinator": "and", "conditions": [{"leftValue": "={{ $json.mime_type }}", "operator": {"type": "string", "operation": "equals"}, "rightValue": "application/vnd.ms-excel"}]}, "renameOutput": True, "outputKey": "XLS"},
+                        {"conditions": {"combinator": "and", "conditions": [{"leftValue": "={{ $json.mime_type }}", "operator": {"type": "string", "operation": "equals"}, "rightValue": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}]}, "renameOutput": True, "outputKey": "XLSX"},
+                        {"conditions": {"combinator": "and", "conditions": [{"leftValue": "={{ $json.mime_type }}", "operator": {"type": "string", "operation": "exists"}}]}, "renameOutput": True, "outputKey": "ELSE"}
+                    ]
+                }
+            },
+            "id": "route-document-types",
+            "name": "Route Document Types",
+            "type": "n8n-nodes-base.switch",
+            "position": [1536, 1200],
+            "typeVersion": 3.2
+        },
+        
+        # ============ EXTRACT FROM PDF ============
+        {
+            "parameters": {
+                "operation": "pdf",
+                "options": {}
+            },
+            "id": "extract-pdf",
+            "name": "Extract from PDF",
+            "type": "n8n-nodes-base.extractFromFile",
+            "position": [1920, 1312],
+            "typeVersion": 1
+        },
+        
+        # ============ EXTRACT FROM XLS ============
+        {
+            "parameters": {
+                "operation": "xls",
+                "options": {}
+            },
+            "id": "extract-xls",
+            "name": "Extract from XLS",
+            "type": "n8n-nodes-base.extractFromFile",
+            "position": [1824, 1520],
+            "typeVersion": 1
+        },
+        
+        # ============ EXTRACT FROM XLSX ============
+        {
+            "parameters": {
+                "operation": "xlsx",
+                "binaryPropertyName": "data",
+                "options": {}
+            },
+            "id": "extract-xlsx",
+            "name": "Extract from XLSX",
+            "type": "n8n-nodes-base.extractFromFile",
+            "position": [1824, 1680],
+            "typeVersion": 1
+        },
+        
+        # ============ MAP JSON ============
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [{
+                        "name": "data",
+                        "type": "string",
+                        "value": "={{ $json }}"
+                    }]
+                }
+            },
+            "id": "map-json",
+            "name": "Map JSON",
+            "type": "n8n-nodes-base.set",
+            "position": [2064, 1440],
+            "typeVersion": 3.4
+        },
+        
+        # ============ MAP DOCUMENT PROMPT ============
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [{
+                        "name": "text",
+                        "type": "string",
+                        "value": "=Parsed text: {{ $json.text || $json.data || $json }}\n\nCaption text: {{ $('Route Message Types').item.json.data.message.documentMessage.caption }}\n\nMimeType: {{ $('Wasender Webhook').item.json.data.message.documentMessage.mimetype }}"
+                    }, {
+                        "name": "from",
+                        "type": "string",
+                        "value": "={{ $('Wasender Webhook').item.json.data.key.remoteJid }}"
+                    }]
+                }
+            },
+            "id": "map-document-prompt",
+            "name": "Map Document Prompt",
+            "type": "n8n-nodes-base.set",
+            "position": [2304, 1264],
+            "typeVersion": 3.4
+        },
+        
+        # ============ KNOWLEDGE BASE AGENT ============
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.text }}",
+                "options": {"systemMessage": ""}
+            },
+            "id": "knowledge-base-agent",
+            "name": "Knowledge Base Agent",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "position": [2576, 864],
+            "typeVersion": 1.9
+        },
+        
+        # ============ OPENAI CHAT MODEL ============
+        {
+            "parameters": {
+                "model": {
+                    "__rl": True,
+                    "mode": "list",
+                    "value": "gpt-4o-mini"
+                },
+                "options": {}
+            },
+            "id": "openai-chat-model",
+            "name": "OpenAI Chat Model",
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "position": [2576, 1040],
+            "typeVersion": 1.2
+        },
+        
+        # ============ SIMPLE MEMORY ============
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "=memory_{{ $('Wasender Webhook').item.json.data.key.remoteJid }}"
+            },
+            "id": "simple-memory",
+            "name": "Simple Memory",
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "position": [2688, 1040],
+            "typeVersion": 1.3
+        },
+        
+        # ============ MONGODB VECTOR SEARCH ============
+        {
+            "parameters": {
+                "mode": "retrieve-as-tool",
+                "toolName": "productDocs",
+                "toolDescription": "retrieve documentation",
+                "mongoCollection": {
+                    "__rl": True,
+                    "mode": "list",
+                    "value": "n8n-template"
+                },
+                "vectorIndexName": "data_index",
+                "options": {}
+            },
+            "id": "mongodb-vector-search",
+            "name": "MongoDB Vector Search",
+            "type": "@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas",
+            "position": [2800, 1040],
+            "typeVersion": 1.1
+        },
+        
+        # ============ EMBEDDINGS OPENAI ============
+        {
+            "parameters": {"options": {}},
+            "id": "embeddings-openai",
+            "name": "Embeddings OpenAI",
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "position": [2928, 1200],
+            "typeVersion": 1.2
+        },
+        
+        # ============ SEND RESPONSE (WASENDER) ============
+        {
+            "parameters": {
+                "url": "https://wasenderapi.com/api/send-message",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": True,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({\n  \"jid\": $('Wasender Webhook').item.json.data.key.remoteJid,\n  \"type\": \"text\",\n  \"message\": {\n    \"text\": $json.output\n  }\n}) }}",
+                "options": {}
+            },
+            "id": "send-response-wasender",
+            "name": "Send Response (Wasender)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [2944, 864],
+            "typeVersion": 4.2
+        },
+        
+        # ============ SEND UNSUPPORTED RESPONSE ============
+        {
+            "parameters": {
+                "url": "https://wasenderapi.com/api/send-message",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": True,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({\n  \"jid\": $('Wasender Webhook').item.json.data.key.remoteJid,\n  \"type\": \"text\",\n  \"message\": {\n    \"text\": \"The file type you provided is unsupported.\"\n  }\n}) }}",
+                "options": {}
+            },
+            "id": "send-unsupported-wasender",
+            "name": "Send Unsupported Response",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [1824, 1840],
+            "typeVersion": 4.2
+        },
+        
+        # ============ GOOGLE DOCS IMPORTER ============
+        {
+            "parameters": {
+                "operation": "get",
+                "documentURL": "https://docs.google.com/document/d/1gvgp71e9edob8WLqFIYCdzC7kUq3pLO37VKb-a-vVW4/edit?tab=t.0"
+            },
+            "id": "google-docs-importer",
+            "name": "Google Docs Importer",
+            "type": "n8n-nodes-base.googleDocs",
+            "position": [464, -112],
+            "typeVersion": 2
+        },
+        
+        # ============ MONGODB VECTOR STORE INSERTER ============
+        {
+            "parameters": {
+                "mode": "insert",
+                "mongoCollection": {
+                    "__rl": True,
+                    "mode": "list",
+                    "value": "n8n-template"
+                },
+                "vectorIndexName": "data_index",
+                "options": {}
+            },
+            "id": "mongodb-vector-store-inserter",
+            "name": "MongoDB Vector Store Inserter",
+            "type": "@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas",
+            "position": [688, -112],
+            "typeVersion": 1.1
+        },
+        
+        # ============ OPENAI EMBEDDINGS GENERATOR ============
+        {
+            "parameters": {"options": {}},
+            "id": "openai-embeddings-generator",
+            "name": "OpenAI Embeddings Generator",
+            "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+            "position": [688, 64],
+            "typeVersion": 1.2
+        },
+        
+        # ============ DOCUMENT SECTION LOADER ============
+        {
+            "parameters": {
+                "jsonMode": "expressionData",
+                "jsonData": "={{ $json.content }}",
+                "options": {
+                    "metadata": {
+                        "metadataValues": [{
+                            "name": "doc_id",
+                            "value": "={{ $json.documentId }}"
+                        }]
+                    }
+                }
+            },
+            "id": "document-section-loader",
+            "name": "Document Section Loader",
+            "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+            "position": [784, 64],
+            "typeVersion": 1
+        },
+        
+        # ============ DOCUMENT CHUNKER ============
+        {
+            "parameters": {
+                "chunkSize": 3000,
+                "chunkOverlap": 200,
+                "options": {"splitCode": "markdown"}
+            },
+            "id": "document-chunker",
+            "name": "Document Chunker",
+            "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+            "position": [784, 192],
+            "typeVersion": 1
+        },
+        
+        # ============ MANUAL TRIGGER ============
+        {
+            "parameters": {},
+            "id": "manual-trigger",
+            "name": "When clicking Execute Workflow",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [240, -112],
+            "typeVersion": 1
+        }
+    ],
+    
+    # ============ CONNECTIONS ============
+    "connections": {
+        "Wasender Webhook": {
+            "main": [[{"node": "Route Message Types", "type": "main", "index": 0}]]
+        },
+        "Route Message Types": {
+            "main": [
+                [{"node": "Map Text Message", "type": "main", "index": 0}],
+                [{"node": "Decrypt Audio (Wasender)", "type": "main", "index": 0}],
+                [{"node": "Decrypt Image (Wasender)", "type": "main", "index": 0}],
+                [{"node": "Decrypt Document (Wasender)", "type": "main", "index": 0}]
+            ]
+        },
+        "Map Text Message": {
+            "main": [[{"node": "Knowledge Base Agent", "type": "main", "index": 0}]]
+        },
+        "Decrypt Audio (Wasender)": {
+            "main": [[{"node": "Download Audio", "type": "main", "index": 0}]]
+        },
+        "Download Audio": {
+            "main": [[{"node": "Transcribe Audio", "type": "main", "index": 0}]]
+        },
+        "Transcribe Audio": {
+            "main": [[{"node": "Knowledge Base Agent", "type": "main", "index": 0}]]
+        },
+        "Decrypt Image (Wasender)": {
+            "main": [[{"node": "Download Image", "type": "main", "index": 0}]]
+        },
+        "Download Image": {
+            "main": [[{"node": "Analyze Image", "type": "main", "index": 0}]]
+        },
+        "Analyze Image": {
+            "main": [[{"node": "Map Image Prompt", "type": "main", "index": 0}]]
+        },
+        "Map Image Prompt": {
+            "main": [[{"node": "Knowledge Base Agent", "type": "main", "index": 0}]]
+        },
+        "Decrypt Document (Wasender)": {
+            "main": [[{"node": "Download Document", "type": "main", "index": 0}]]
+        },
+        "Download Document": {
+            "main": [[{"node": "Map File Extensions", "type": "main", "index": 0}]]
+        },
+        "Map File Extensions": {
+            "main": [[{"node": "Route Document Types", "type": "main", "index": 0}]]
+        },
+        "Route Document Types": {
+            "main": [
+                [{"node": "Extract from PDF", "type": "main", "index": 0}],
+                [{"node": "Extract from XLS", "type": "main", "index": 0}],
+                [{"node": "Extract from XLSX", "type": "main", "index": 0}],
+                [{"node": "Send Unsupported Response", "type": "main", "index": 0}]
+            ]
+        },
+        "Extract from PDF": {
+            "main": [[{"node": "Map Document Prompt", "type": "main", "index": 0}]]
+        },
+        "Extract from XLS": {
+            "main": [[{"node": "Map JSON", "type": "main", "index": 0}]]
+        },
+        "Extract from XLSX": {
+            "main": [[{"node": "Map JSON", "type": "main", "index": 0}]]
+        },
+        "Map JSON": {
+            "main": [[{"node": "Map Document Prompt", "type": "main", "index": 0}]]
+        },
+        "Map Document Prompt": {
+            "main": [[{"node": "Knowledge Base Agent", "type": "main", "index": 0}]]
+        },
+        "Knowledge Base Agent": {
+            "main": [[{"node": "Send Response (Wasender)", "type": "main", "index": 0}]]
+        },
+        "OpenAI Chat Model": {
+            "ai_languageModel": [[{"node": "Knowledge Base Agent", "type": "ai_languageModel", "index": 0}]]
+        },
+        "Simple Memory": {
+            "ai_memory": [[{"node": "Knowledge Base Agent", "type": "ai_memory", "index": 0}]]
+        },
+        "MongoDB Vector Search": {
+            "ai_tool": [[{"node": "Knowledge Base Agent", "type": "ai_tool", "index": 0}]]
+        },
+        "Embeddings OpenAI": {
+            "ai_embedding": [[{"node": "MongoDB Vector Search", "type": "ai_embedding", "index": 0}]]
+        },
+        "When clicking Execute Workflow": {
+            "main": [[{"node": "Google Docs Importer", "type": "main", "index": 0}]]
+        },
+        "Google Docs Importer": {
+            "main": [[{"node": "MongoDB Vector Store Inserter", "type": "main", "index": 0}]]
+        },
+        "OpenAI Embeddings Generator": {
+            "ai_embedding": [[{"node": "MongoDB Vector Store Inserter", "type": "ai_embedding", "index": 0}]]
+        },
+        "Document Section Loader": {
+            "ai_document": [[{"node": "MongoDB Vector Store Inserter", "type": "ai_document", "index": 0}]]
+        },
+        "Document Chunker": {
+            "ai_textSplitter": [[{"node": "Document Section Loader", "type": "ai_textSplitter", "index": 0}]]
+        }
+    },
+    
+    "active": False,
+    "settings": {"executionOrder": "v1"},
+    "meta": {"instanceId": "wasender-api-workflow"},
+    "id": "WasenderAPIWorkflow",
+    "tags": []
+}
+
+# Save to file with proper path
+import os
+output_path = '/tmp/Wasender_API_Workflow.json'
+with open(output_path, 'w', encoding='utf-8') as f:
+    json.dump(workflow, f, indent=2, ensure_ascii=False)
+
+# Verify file was created
+file_size = os.path.getsize(output_path)
+print(f"✅ Arquivo criado com sucesso!")
+print(f"📁 Localização: {output_path}")
+print(f"📊 Tamanho: {file_size} bytes")
+print(f"\n🔽 O arquivo está pronto para download!")
